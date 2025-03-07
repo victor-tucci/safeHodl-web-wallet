@@ -18,7 +18,7 @@ export const feeTokens: Record<string, { name: string; symbol: string; type: str
     Amoy: [
         {
             name: 'Amoy',
-            symbol: 'POL',
+            symbol: 'MATIC',
             type: 'COIN',
             decimals: 18,
             address: ''
@@ -29,6 +29,13 @@ export const feeTokens: Record<string, { name: string; symbol: string; type: str
             type: 'TOKEN',
             decimals: 9,
             address: '0xF757Dd3123b69795d43cB6b58556b3c6786eAc13'
+        },
+        {
+            name: 'Ronin',
+            symbol: 'RON',
+            type: 'TOKEN',
+            decimals: 9,
+            address: '0x3Fcc9E5f80325dc425C6bB5252B0A9E336d19e61'
         }
     ]
 };

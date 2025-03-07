@@ -26,7 +26,7 @@ function User() {
     // Mock data for crypto items
     const cryptoItems = [
         // { symbol: "BDX", name: "Beldex", type: "COIN", chain:'56', price: "$0.0789", change: "-0.14%", icon: bitcoinLogo, color: "red" },
-        { symbol: "POL", name: "Amoy", type: "COIN", chain:'0x13882', price: "$101,234", change: "-0.14%", icon: bitcoinLogo, color: "red" },
+        { symbol: "MATIC", name: "Amoy", type: "COIN", chain:'0x13882', price: "$101,234", change: "-0.14%", icon: bitcoinLogo, color: "red" },
         { symbol: "SAR", name: "Sarvy", type: "TOKEN", chain:'0x13882', price: "$0.89", change: "-2.56%", icon: bitcoinLogo, color: "red" },
         { symbol: "RON", name: "Ronin", type: "TOKEN", chain:'0x13882', price: "$0.0002124", change: "-10.23%", icon: bitcoinLogo, color: "red" },
         { symbol: "ETH", name: "Sepolia", type: "COIN", chain:'0xaa36a7', price: "$3,200", change: "+1.25%", icon: bitcoinLogo, color: "green" },

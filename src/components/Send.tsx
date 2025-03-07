@@ -106,10 +106,12 @@ export default function Send(props: any) {
     }
 
     // Handle Loading
-    const stopLoading = () => {
+    const stopLoading = (userOp_:boolean) => {
         setLoading(false);
-        setToAddress('');
-        setAmount('');
+        if(!userOp_){
+            setToAddress("");
+            setAmount("");
+        }    
     };
 
     // Handle Popups
@@ -119,14 +121,18 @@ export default function Send(props: any) {
         setErrorMessage('');
         setTxStatus('');
         setTxHash('');
-        isSend(false);
+        const ignoredErrors = ["AA21 didn't pay prefund", "Insufficient balance."];
+        const shouldIgnore = ignoredErrors.some(err => errorMessage.toString().includes(err));
+        if (!shouldIgnore) {
+            isSend(false);
+        }
     };
 
     // Handle errors
-    const handleError = (error:any) => {
+    const handleError = (error:any,userOp_:boolean) => {
         console.log('Error occurred: ', error); // Log for debugging
         setErrorMessage(error);
-        stopLoading();
+        stopLoading(userOp_);
     };
 
     // calculate aprox fees
@@ -177,12 +183,11 @@ export default function Send(props: any) {
                 }else{
                     setAproxFee('');
                     setUserOp(undefined);
-                    handleError(response.message);
-                    setIsNext(false);
+                    handleError(response.message,true);
                 }
             } catch (err: any) {
                 console.error('Error in getUserOperation:', err);
-                handleError(err.message);
+                handleError(err.message,false);
                 setIsNext(false);
             }
         }
@@ -265,11 +270,11 @@ export default function Send(props: any) {
                 }
             }else{
                 console.log(response.message);
-                handleError(response.message);
+                handleError(response.message,false);
             }
         } catch (err: any) {
             console.error('Error in sendTx:', err);
-            handleError(err.message);
+            handleError(err.message,false);
         }
     }
 

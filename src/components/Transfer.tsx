@@ -51,13 +51,15 @@ export default function Transfer(props: any) {
     }, [currentCoin]);
     
     useEffect(() => {
+        if(!rawId) return;
+        console.log({rawId});
         const fetchTransactions = async () => {
-          const allTransactions = await getAllTransactions(props.rawId);
+          const allTransactions = await getAllTransactions(rawId);
           console.log({allTransactions}); 
           setTransactions(allTransactions);
         };
         fetchTransactions();
-      }, [isSend]);
+      }, [isSend,rawId]);
 
     //Calculating estimate address
     useEffect(() => {
@@ -134,7 +136,7 @@ export default function Transfer(props: any) {
                     {loading? <Loading /> : (
                         <div style={history}>
                             <p>History</p>
-                            <TransactionHistory transactions={transactions} currentCoinType={currentCoin.name}></TransactionHistory>
+                            <TransactionHistory currentCoinType={currentCoin.symbol} walletAddress={address} chainhex={currentCoin.chain}></TransactionHistory>
                         </div>)
                     }
                 </div>

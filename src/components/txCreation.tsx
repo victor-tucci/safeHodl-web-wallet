@@ -11,7 +11,7 @@ import {
     SafeHodl_FACTORY
 } from './chainInfo';
 
-import {fetchERC20Balance} from './estimateAddress';
+import {fetchERC20Balance,fetchBalance} from './estimateAddress';
 import signUserOperation from './signTx';
 
 import Entrypoint from '../abi/entrypoint.json';
@@ -118,7 +118,7 @@ export const getUserOperationByHash = async (web3:any, opHash:HexString) => {
 
     const response = await web3.currentProvider.sendAsync({
         jsonrpc: "2.0",
-        method: "skandha_userOperationStatus",
+        method: "safehodl_userOperationStatus",
         params: [opHash],
         id: new Date().getTime()
     });
@@ -272,10 +272,12 @@ const createUserOp = async (web3:any, walletAddress:HexString, publicKeys:any[],
         userOp.callGasLimit = callGasLimit;
 
         userOp.maxFeePerGas = maxFeePerGas;
-        const {maxPriorityFeePerGas} = await userOpProvider.send("skandha_getGasPrice",[]);
-        console.log({maxPriorityFeePerGas});
+        const {maxPriorityFeePerGas} = await userOpProvider.send("safehodl_getGasPrice",[]);
         userOp.maxPriorityFeePerGas = maxPriorityFeePerGas; //temporarily
 
+        const _dest = executeParams[0]
+        const encodedData = executeParams[2];
+        const approvedToken = executeParams[3]
         let requiredFee = 0;
         if(!(paymasterAndData === "0x")){
                 console.log("Paymaster and data provided");
@@ -292,9 +294,14 @@ const createUserOp = async (web3:any, walletAddress:HexString, publicKeys:any[],
                 const chainID = await web3.eth.getChainId();
                 const hexChainID = `0x${chainID.toString(16)}` as keyof typeof chainIdandType;
                 const balance =  await fetchERC20Balance(web3, walletAddress,hexChainID, feeAsset.name);
-                if(requiredFee > balance)
-                return { error: true, message: `Insufficient balance. need ${requiredFee} ${feeAsset.symbol} available ${balance} ${feeAsset.symbol}`};
-    
+                if(requiredFee > balance){
+                    return { error: true, message: `Insufficient balance. need ${requiredFee} ${feeAsset.symbol} available ${balance} ${feeAsset.symbol}`};
+                }else if((_dest === approvedToken)){
+                    const decoded = web3.eth.abi.decodeParameters(TransactionAbi.ERC20Transfer.inputs, encodedData.slice(10));
+                    const tokenAmount = Number(decoded.amount) / 10 ** feeAsset.decimals;
+                    if((requiredFee + tokenAmount) > balance)
+                        return { error: true, message: `Insufficient balance. need ${(requiredFee + tokenAmount)} ${feeAsset.symbol} available ${balance}`};
+                }
                 const approveData = await web3.eth.abi.encodeFunctionCall(TransactionAbi.ERC20Approve, [PAYMASTER_ADDRESS, actualTokenCost]);
                 userOp.callData = await web3.eth.abi.encodeFunctionCall(TransactionAbi.executeABI, [executeParams[0], executeParams[1], executeParams[2], executeParams[3], approveData]);
                 const paymasterData = await getSponserFromPaymaster(web3,userOp, executeParams[3]);
@@ -305,13 +312,19 @@ const createUserOp = async (web3:any, walletAddress:HexString, publicKeys:any[],
                         return {error: true,message:errorMessage = `${paymasterData.error?.message}. Need ${requiredFee} ${feeAsset.symbol}, available ${balance}`};
                     } else if (paymasterData.error.code === 2) {
                         return {error: true,message:errorMessage += ` ${paymasterData.error?.message || ""}`};
+                    }else if (paymasterData.error.code === 101) {
+                        return {error: true,message:errorMessage += ` ${paymasterData.error?.message || ""}`};
                     }
                 }
                     userOp.paymasterAndData = PAYMASTER_ADDRESS + paymasterData.result;    
         }else{
+            const balance = await fetchBalance(web3,walletAddress);
             const totalGas = window.BigInt(userOp.preVerificationGas) + window.BigInt(userOp.verificationGasLimit) + window.BigInt(userOp.callGasLimit)
             console.log({totalGas});
             requiredFee = Number(totalGas * window.BigInt(maxFeePerGas))/10 ** 18;
+            if (balance < requiredFee){
+                alert(`Insufficient balance. need : ${requiredFee} ${feeAsset.symbol} available ${balance} ${feeAsset.symbol}`)
+            }
             console.log({requiredFee});
         }
         return { error: false, message: "", userOp:userOp, requiredFee:requiredFee.toString()};

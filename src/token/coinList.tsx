@@ -25,7 +25,7 @@ export const coinList: Record<string, { name: string; symbol: string; type: stri
     Amoy: [
         {
             name: 'Amoy',
-            symbol: 'POL',
+            symbol: 'MATIC',
             type: 'COIN',
             decimals: 18,
             address: ''
